@@ -1,0 +1,287 @@
+---
+title: "London Low-Income Household Analysis"
+subtitle: "Statistical analysis of children in low-income households across London boroughs, 2014–2021"
+author: "Piyali Narnaware"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+---
+
+## Project Overview
+
+---
+
+## Analysing Children in Low-Income Households Across London, 2014–2021
+
+This project analyses children living in low-income households across London boroughs between 2014 and 2021. The dataset contains ward-level records grouped by borough, allowing borough-level patterns and year-on-year distribution changes to be explored.
+
+The analysis focuses on descriptive statistics, borough-level comparison, visualisation of yearly distributions, and statistical testing to assess whether low-income household figures changed significantly between 2014 and 2021.
+
+---
+
+## Data Dictionary
+
+Variable | Description
+------------- | -------------
+Ward Code| Code defined to each ward 
+Wards | Sub divisions of boroughs
+Borough| Large areas of London who have their local council or government
+Year| specific year in which the data was recorded
+Children| Number of Children in low income houses
+
+---
+
+## Reading the data 
+
+```{r tidyverse}
+
+library(tidyverse)
+
+#Saving and reading the data file 
+dataset <- read.csv("../data/children_low_income_data.csv")
+
+#Summarise the data 
+summary(dataset)
+
+```
+ 
+The dataset was first summarised to understand variable types, missing values, and the overall distribution of children in low-income households.
+
+---
+
+## Initial Data Exploration
+ 
+```{r }
+library(ggplot2)
+
+ggplot(dataset, aes(children))+ geom_boxplot(color = "blue") +
+   labs(title = "Number of Children in low income houses")
+
+
+```
+
+The boxplot provides an initial view of the spread and skewness in the number of children recorded across wards and years.
+
+---
+
+## Borough-Level Summary Statistics
+
+For grouping the boroughs we would use group_by followed by the conditions 
+A. For finding average number of children in low income homes per ward across all years  
+```{r }
+
+library(dplyr)
+
+#make a new data set consisting of the average of children in low income homes by grouping the name of the Boroughs
+dataset_avg <- dataset %>%
+  group_by(Borough) %>%
+  summarise(average = mean(children,na.rm = TRUE))
+
+```
+
+B. For finding standard deviation of children in low income homes per ward across all years  
+```{r }
+
+#make a new data set consisting of the standard deviation of children in low income homes by grouping the name of the Boroughs
+dataset_sd <- dataset %>%
+  group_by(Borough) %>%
+  summarise(StandardDeviation = sd(children, na.rm = TRUE))
+
+
+```
+
+C. For finding lowest number of children in low income homes for a ward in any year 
+```{r }
+
+#make a new data set consisting of the lowest number of children in low income homes by grouping the name of the Boroughs
+dataset_min <- dataset %>%
+  group_by(Borough) %>%
+  summarise(Minimum = min(children, na.rm = TRUE))
+
+
+```
+
+D. For finding highest number of children in low income homes for a ward in any year 
+```{r }
+
+#make a new data set consisting of the highest number of children in low income homes by grouping the name of the Boroughs
+dataset_max <- dataset %>%
+  group_by(Borough) %>%
+  summarise(Maximum = max(children, na.rm = TRUE))
+
+
+```
+
+After performing the above calculations,a new dataset of children in low income homes which consist of boroughs of London, the calculated average number, calculated standard deviation and calculated lowest and highest number is binded and renamed accordingly
+```{r }
+
+#make a new dataset with a table that includes average, standard deviation, minimum and maximum number of children in low income homes across all years
+dataset_new <- bind_cols(dataset_avg,dataset_sd$StandardDeviation,dataset_min$Minimum,dataset_max$Maximum)
+
+colnames(dataset_new) <- c(
+  "Borough",
+  "Average Children",
+  "Standard Deviation",
+  "Minimum",
+  "Maximum"
+)
+
+dataset_new
+```
+
+---
+
+## Filtering Unusual Boroughs
+
+The analysis addresses four key questions:
+
+1. Calculate mean, standard deviation, minimum and maximum values for each London borough.
+2. Exclude boroughs with unusually small counts to improve comparability.
+3. Visualise yearly distribution patterns with mean and standard deviation.
+4. Compare 2014 and 2021 using a Welch two-sample t-test.
+```{r }
+
+#make a new dataset by removing the unusual boroughs
+dataset_final <- dataset_new %>%
+  filter(Borough != "City of London", Borough !="Kensington and Chelsea", Borough !="Kingston upon Thames",Borough !="Richmond upon Thames", Borough !="Westminster" )
+  
+```
+
+
+```{r }
+
+data <- dataset %>%
+  filter(dataset$Borough != "City of London" & dataset$Borough !="Kensington and Chelsea" & dataset$Borough !="Kingston upon Thames"& dataset$Borough !="Richmond upon Thames" & dataset$Borough !="Westminster")
+
+```
+
+---
+
+## Yearly Distribution Analysis
+
+```{r}
+#install.packages("ggplot2")
+
+#library(ggplot2)
+
+```
+
+A jitter plot was used to show the distribution of children in low-income households across each year. Mean and standard deviation markers were added to highlight yearly trends and variation.
+
+```{r}
+
+#make a new dataset by removing the unusual boroughs
+my_plot <- ggplot(data, aes(x = as.factor(year), y = children)) +
+  geom_jitter(width = 0.2, alpha = 0.5, color = "cyan") +
+  stat_summary(
+    fun = mean,
+    geom = "crossbar",
+    width = 0.3,
+    color = "black"
+  ) +
+  stat_summary(
+    fun = mean,
+    geom = "line",
+    aes(group = 1),
+    color = "red"
+  ) +
+  labs(
+    title = "Distribution of Children in Low-Income Households by Year",
+    x = "Year",
+    y = "Children in Low-Income Households",
+    caption = "Figure 1: Yearly distribution with mean trend line"
+  )
+
+my_plot
+```
+
+---
+
+## Statistical Comparison: 2014 vs 2021
+
+```{r}
+# Filter data for the earliest year (2014)
+data_2014 <- data %>% filter(year == 2014)
+
+# Filter data for the latest year (2021)
+data_2021 <- data %>% filter(year == 2021)
+
+```
+
+```{r}
+
+# Perform a two-sample t-test
+
+t.test(data_2014$children, data_2021$children, alternative = "two.sided")
+
+t_test_result <- t.test(data_2014$children, data_2021$children, alternative = "two.sided")
+```
+
+After applying the t-test to the two sets of data about the number of children living in low-income housing in London in 2014 and 2021, the test statistics yielded a value of -4.0215, indicating a difference in the available data's mean.
+
+
+Null Hypothesis Significance Testing (NHST):
+ 
+ The NHST method determines whether an event is statistically significant or a random occurrence. Where H0 is the null hypothesis, stating no difference in statistical data, and Ha is the alternative hypothesis, contradicting the null hypothesis. To arrive at a solution, this method takes into account the computed p-value and t-value from the t-tests.
+```{r}
+# Report the results using Null Hypothesis Significance Testing (NHST)
+#Display the Null Hypothesis
+cat("Null Hypothesis Significance Testing (NHST):\n")
+
+#Specifying the null hypothesis H0 and Ha to be an alternative hypothesis
+cat("H0: The means of children in low-income households in 2014 and 2021 are equal.\n")
+cat("Ha: The means of children in low-income households in 2014 and 2021 are not equal.\n")
+
+# printing the statistical value 
+cat("t-value:", t_test_result$statistic, "\n")
+
+#printing the probability value
+cat("p-value:", t_test_result$p.value, "\n")
+
+```
+
+## Using the Estimation approach 
+
+```{r}
+# Print the results using the estimation approach
+cat("\nEstimation Approach:\n")
+
+#Print the confidence Interval
+cat("95% Confidence Interval for the difference in means: [", t_test_result$conf.int[1], ", ", t_test_result$conf.int[2], "]\n")
+
+```
+
+The estimation approach is based on the hypothesis testing performed on the data which provides the size of the data set.
+
+```{r}
+# To determine the significance, check if the p-value is smaller than the significance level.
+if (t_test_result$p.value < 0.05) {
+  cat("\nThe difference in means is statistically significant at the 0.05 significance level.\n")
+} else {
+  cat("\nThe difference in means is not statistically significant at the 0.05 significance level.\n")
+}
+
+```
+
+---
+
+## Insights and Interpretation
+
+This analysis shows how the number of children living in low-income households varied across London boroughs between 2014 and 2021. Boroughs with unusually small counts were excluded to ensure a more meaningful comparison across the remaining boroughs.
+
+```{r}
+
+my_plot
+
+```
+
+The statistical test indicates a significant difference between 2014 and 2021. The mean number of children in low-income households was higher in 2021 than in 2014, suggesting an upward shift over the analysed period.
+
+
