@@ -9,6 +9,7 @@ Business Problem
 Understanding low-income household trends is important for identifying borough-level inequality and supporting data-informed policy, funding, and intervention decisions.
 
 Tools Used
+
 R
 tidyverse
 dplyr
@@ -17,6 +18,7 @@ Statistical hypothesis testing
 
 
 Methodology
+
 Cleaned and summarised ward-level data
 Aggregated children in low-income households by borough
 Calculated mean, standard deviation, minimum, and maximum values
@@ -26,10 +28,13 @@ Applied Welch two-sample t-test to compare 2014 and 2021 figures
 
 
 Key Findings
+
 The average number of children in low-income households increased from 2014 to 2021.
 Borough-level variation was visible across London, with some boroughs showing consistently higher counts.
 Welch two-sample t-test showed a statistically significant difference between 2014 and 2021.
 The mean increased from 528.32 in 2014 to 603.87 in 2021, suggesting a notable upward shift.
+
+
 Visualisations
 ![Borough Summary Statistics](borough_summary_statistics.png)
 
