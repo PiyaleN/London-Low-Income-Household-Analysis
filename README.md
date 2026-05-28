@@ -11,13 +11,9 @@ Understanding low-income household trends is important for identifying borough-l
 Tools Used
 
 R
-
 tidyverse
-
 dplyr
-
 ggplot2
-
 Statistical hypothesis testing
 
 
