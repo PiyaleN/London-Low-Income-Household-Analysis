@@ -1,4 +1,4 @@
-# london-low-income-household-analysis
+# London-Low-Income-Household-Analysis
 London Low-Income Household Analysis
 Overview
 
